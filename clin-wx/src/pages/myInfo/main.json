@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "个人信息编辑",
+  "usingComponents": {
+    "van-nav-bar": "../../static/vant-weapp/nav-bar/index",
+    "van-tabbar": "../../static/vant-weapp/tabbar/index",
+    "van-tabbar-item": "../../static/vant-weapp/tabbar-item/index",
+    "van-toast": "../../static/vant-weapp/toast/index",
+    "van-row": "../../static/vant-weapp/row/index",
+    "van-col":"../../static/vant-weapp/col/index",
+    "van-field": "../../static/vant-weapp/field/index",
+    "van-cell": "../../static/vant-weapp/cell/index",
+    "van-cell-group": "../../static/vant-weapp/cell-group/index",
+    "van-uploader": "../../static/vant-weapp/uploader/index",
+    "van-button": "../../static/vant-weapp/button/index"
+  }
+}

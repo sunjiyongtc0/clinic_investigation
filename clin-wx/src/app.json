@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/login/main",
+    "pages/index/main",
+    "pages/account/main",
+    "pages/infoAdd/main",
+    "pages/myInfo/main",
+    "pages/infoEdit/main",
+    "pages/exwaitDetail/main",
+    "pages/infoDetail/main",
+    "pages/updatePwd/main",
+    "pages/userAdd/main"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "WeChat",
+    "navigationBarTextStyle": "black"
+  }
+}
