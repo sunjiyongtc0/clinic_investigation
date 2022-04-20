@@ -32,14 +32,19 @@ public class ReportDataServiceImpl implements ReportDataService {
     @Override
     public Map getStatisticsData() {
         Map m=new HashMap();
-        Map day=reportDataMapper.getDaySum();
-        Map user=reportDataMapper.getUserQuest();
-        m.put("countNum",day.get("allsum"));
-        m.put("todayNum",day.get("daysum"));
-        long alluser=Long.parseLong(user.get("alluser")+"");
-        long allquest=Long.parseLong(user.get("allquest")+"");
-        m.put("userNum",alluser);
-        m.put("avgNum",allquest/alluser);
+        try {
+            Map day=reportDataMapper.getDaySum();
+            Map user=reportDataMapper.getUserQuest();
+            m.put("countNum",day.get("allsum"));
+            m.put("todayNum",day.get("daysum"));
+            long alluser=Long.parseLong(user.get("alluser")+"");
+            long allquest=Long.parseLong(user.get("allquest")+"");
+            m.put("userNum",alluser);
+            m.put("avgNum",allquest/alluser);
+        }catch (Exception e){
+//            System.out.println(e.getMessage());
+        }
+
         return m;
     }
 

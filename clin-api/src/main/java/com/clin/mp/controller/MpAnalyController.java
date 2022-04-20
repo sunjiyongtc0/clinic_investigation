@@ -35,9 +35,17 @@ public class MpAnalyController extends BaseMpController{
     public ListResult<Object> getStatisticsData(){
         VerificationAuth();
         Map showMap=reportDataService.getStatisticsData();
-        List<Map> ageMap=reportDataService.getAgeData();
-        showMap.put("age",ageMap);
-        return ResultBuilder.buildListSuccess(showMap);
+        if(showMap.isEmpty()){
+            return ResultBuilder.buildListSuccess("");
+        }else{
+            List<Map> ageMap=reportDataService.getAgeData();
+            if(ageMap.size()!=0){
+                showMap.put("age",ageMap);
+            }
+            return ResultBuilder.buildListSuccess(showMap);
+        }
+
+
     }
 
     @PostMapping("/getAgeData")
