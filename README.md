@@ -1,2 +1,5 @@
-# clinic_investigation
-义诊调查
+# 义诊调查
+### 技术栈
+- springboot+mybatis+oauth2
+- mysql
+- vant +lemenetUI
