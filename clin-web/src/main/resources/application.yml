@@ -1,0 +1,79 @@
+web:
+  rule:
+    managerRule: users,sysuserdetail,sysrole,sysmenu,sysuser,inv,examine,pdc,question,reprot,analy
+    agentRule: users,sysuserdetail,sysmenu,sysuser,inv,pdc,question,reprot,analy
+    volunteerRule: users,sysuserdetail,sysmenu,inv,pdc,question
+  upload:
+    img:
+      path: /home/work/jar/resources/
+server:
+  servlet:
+    context-path: /clin
+  port: 1018
+
+spring:
+  application:
+    name: clin
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    druid:
+      web-stat-filter:
+        enabled: false
+        url-pattern: /*
+      stat-view-servlet:
+        login-username: admin
+        login-password: admin
+        enabled: true
+        url-pattern: /druid/*
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://82.157.234.42:3306/clinic_investigation?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: sun
+    password: 123456
+    hikari:
+      minimum-idle: 5
+      idle-timeout: 60000
+      maximum-pool-size: 10
+      auto-commit: true
+      pool-name: MyHikariCP
+      max-lifetime: 1800000
+      connection-test-query: select 1
+      connection-timeout: 60000
+      validation-timeout: 3000
+#mybatis
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/*.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.clin.api.entity
+  global-config:
+    #数据库相关配置
+    db-config:
+      #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID", ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: AUTO
+      #字段策略 IGNORED:"忽略判断",NOT_NULL:"非 NULL 判断"),NOT_EMPTY:"非空判断"
+      field-strategy: NOT_NULL
+      #驼峰下划线转换
+      column-underline: true
+      logic-delete-value: -1
+      logic-not-delete-value: 0
+    banner: false
+  #原生配置
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+security:
+  oauth2:
+    resource:
+      user-info-uri: http://127.0.0.1:1018/clin/users/current
+#分页设置
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  pageSizeZero: false #pageSize=0 返回所有
+  params: count=countSql
+
+

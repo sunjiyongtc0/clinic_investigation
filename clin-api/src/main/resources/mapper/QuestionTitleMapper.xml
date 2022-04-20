@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.clin.api.mapper.QuestionTitleMapper">
+
+    <resultMap  id="TitleResult"  type="java.util.Map">
+        <id     property="Id"       column="id"      />
+        <result property="groupId"       column="group_id"      />
+        <result property="questionTitle"     column="question_title"    />
+        <result property="questionType"     column="question_type"    />
+        <collection  property="chooseArr"   javaType="java.util.List"  ofType="java.util.Map"  resultMap="ItemResult" />
+    </resultMap>
+
+    <resultMap  id="ItemResult" type="java.util.Map">
+        <id     property="itemId"       column="item_id"        />
+        <result property="parentId"     column="parent_id"      />
+        <result property="itemName"      column="item_name"       />
+        <result property="score"     column="score"    />
+    </resultMap>
+
+
+    <select id="getQuestionList"  parameterType="map" resultType="java.util.LinkedHashMap">
+        SELECT CAST(id AS CHAR) AS id,question_name ,DATE_FORMAT( create_time ,'%Y-%m-%d %T') AS create_time,is_enable,pdc_items FROM t_question_group where 1=1
+        <if test="name != null and name != ''">
+            AND question_name LIKE CONCAT('%',#{name},'%')
+        </if>
+        <if test="code != null and code != 0">
+            AND id =#{code}
+        </if>
+          order by create_time desc
+    </select>
+
+
+    <select id="getTitleList"  resultMap="TitleResult">
+SELECT  CAST(t.id AS CHAR) AS id,CAST(t.group_id AS CHAR) AS group_id,t.question_title,t.question_type,CAST(i.item_id AS CHAR) AS item_id,CAST(i.parent_id AS CHAR) AS parent_id ,i.item_name ,i.score FROM  t_question_title t LEFT JOIN t_question_item i ON t.id=i.parent_id
+ WHERE t.group_id=(SELECT id FROM t_question_group WHERE is_enable=1 LIMIT 1 ) ORDER BY i.score asc
+    </select>
+
+    <select id="getTitleListById"  resultMap="TitleResult" parameterType="long">
+SELECT  CAST(t.id AS CHAR) AS id,CAST(t.group_id AS CHAR) AS group_id,t.question_title,t.question_type,CAST(i.item_id AS CHAR) AS item_id,CAST(i.parent_id AS CHAR) AS parent_id ,i.item_name ,i.score FROM  t_question_title t LEFT JOIN t_question_item i ON t.id=i.parent_id
+ WHERE t.group_id=#{groupId} ORDER BY i.score asc
+    </select>
+
+
+
+    <insert id="saveQuestionGroup">
+        insert into t_question_group(id,question_name,create_time,is_enable,pdc_items) values(
+        #{id},#{questionName},now(),0,#{pdcItems}
+        )
+    </insert>
+
+    <insert id="saveQuestionTitle">
+        insert into t_question_title(id,group_id,question_title,question_type) values(
+        #{id},#{groupId},#{questionTitle},#{questionType}
+        )
+    </insert>
+
+    <insert id="saveQuestionItems">
+        insert into t_question_item(parent_id,item_name,score) values
+        <foreach collection="collection" item="choose" separator=",">
+            (#{choose.parentId},#{choose.itemName},#{choose.score})
+        </foreach>
+
+
+
+    </insert>
+
+
+
+</mapper>

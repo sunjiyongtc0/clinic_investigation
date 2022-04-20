@@ -1,0 +1,156 @@
+package com.clin.auth.service.impl;
+
+
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.clin.auth.entity.SysUserDetail;
+import com.clin.auth.mapper.SysUserDetailMapper;
+import com.clin.auth.service.SysUserDetailService;
+import com.clin.core.utils.RecursiveListUtils;
+import com.clin.core.utils.SequenceGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+/**
+ * <pre>
+ * Title :  用户详细信息的业务逻辑实现层
+ * </pre>
+ *
+ * @author : SunJiYong
+ * @since : 2021-11-18
+ **/
+@Service
+@Transactional
+public class SysUserDetailServiceImpl implements SysUserDetailService {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+	private static SequenceGenerator sequenceGenerator = new SequenceGenerator();
+
+	@Autowired
+	private SysUserDetailMapper sysUserDetailMapper;
+
+
+	/**
+	 * 查询当前用户的角色
+	 */
+	@Override
+	public List<String> getRoleCodeBySysUser(String username, String mobile) {
+		return sysUserDetailMapper.getRoleCodeBySysUser(username, mobile);
+	}
+
+	/**
+	 * 查询当前用户的授权菜单
+	 */
+	@Override
+	public List<LinkedHashMap<String, Object>> querySysMenuAuthorityTree(String username, String mobile, String parentId, String postCode, Long userId) {
+		List<LinkedHashMap<String, Object>> totalList = sysUserDetailMapper.querySysMenuAuthorityTree(username, mobile, postCode, userId);
+		List<LinkedHashMap<String, Object>> resultList = RecursiveListUtils.queryMenuRecursiveList(totalList);
+		if (StringUtils.isNotBlank(parentId)) {
+			resultList = resultList.stream().filter(map -> String.valueOf(map.get("id")).equals(parentId)).collect(Collectors.toList());
+		}
+		return resultList;
+	}
+
+	/**
+	 * 查询当前用户的授权按钮隐藏项
+	 */
+	@Override
+	public List<String> queryRoleMenuButton(String username, String mobile) {
+		return sysUserDetailMapper.queryRoleMenuButton(username, mobile);
+	}
+
+	/**
+	 * 新增用户
+	 */
+	@Override
+	public void insertSysUser(SysUserDetail sysUser) {
+		Integer existing = sysUserDetailMapper.getSysUserByIdentification(sysUser.getUsername().trim(), sysUser.getEmail().trim(), sysUser.getMobile().trim());
+		if (existing != null && existing > 0) {
+			throw new IllegalArgumentException("用户名或邮箱或手机号已存在");
+		}
+		sysUser.setId(sequenceGenerator.nextId());
+		sysUser.setPassword(encoder.encode(sysUser.getPassword()));
+		sysUser.setProvinceRegionCode("210000");
+		sysUser.setCityRegionCode("210100");
+		sysUserDetailMapper.insertSysUser(sysUser);
+		logger.info("用户已新增： {}", sysUser.getUsername());
+	}
+
+	/**
+	 * 编辑用户详细信息
+	 */
+	@Override
+	public void updateSysUserDetail(SysUserDetail sysUser) {
+		sysUserDetailMapper.updateSysUserDetail(sysUser);
+		logger.info("用户详细信息已编辑： {}", sysUser.getId());
+	}
+
+	/**
+	 * 根据字段编辑用户信息
+	 */
+	@Override
+	public void updateSysUserInfo(String fieldValue, String field, Long id) {
+		if ("mobile".equals(field)) {
+			Integer existing = sysUserDetailMapper.getSysUserByIdEmailMobile(id, null, fieldValue.trim());
+			if (existing != null && existing > 0) {
+				throw new IllegalArgumentException("手机号已存在，修改失败");
+			}
+		} else if ("email".equals(field)) {
+			Integer existing = sysUserDetailMapper.getSysUserByIdEmailMobile(id, fieldValue.trim(), null);
+			if (existing != null && existing > 0) {
+				throw new IllegalArgumentException("邮箱已存在，修改失败");
+			}
+		}
+		sysUserDetailMapper.updateSysUserInfo(fieldValue, field, id);
+		logger.info("用户信息已编辑： {}", id);
+	}
+
+	/**
+	 * 修改用户密码
+	 */
+	@Override
+	public void updatePassword(String password, String newPassword, Long id) {
+		String oldPassword = sysUserDetailMapper.getPasswordById(id);
+		if (!encoder.matches(password, oldPassword)) {
+			throw new IllegalArgumentException("原密码不正确");
+		}
+		sysUserDetailMapper.updateSysUserInfo(encoder.encode(newPassword), "password", id);
+		logger.info("用户密码已修改： {}", id);
+	}
+
+	/**
+	 * 找回密码
+	 */
+	@Override
+	public void retrievePassword(String email, String charCaptcha) {
+	}
+
+	/**
+	 * 重置密码（）默认000000
+	 * */
+	public void retrievePassword(long id) {
+		sysUserDetailMapper.updateSysUserInfo(encoder.encode("000000"), "password", id);
+	}
+
+
+	/**
+	 * 比对验证码
+	 */
+	@Override
+	public void compareCaptcha(String charCaptcha ,String charCaptchaCache) {
+		if (StrUtil.isBlank(charCaptchaCache) ||!charCaptcha.equalsIgnoreCase(charCaptchaCache)) {
+			throw new IllegalArgumentException("图片验证码错误或已过期，请重新输入");
+		}
+	}
+
+}

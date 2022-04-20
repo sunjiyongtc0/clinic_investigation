@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.clin.system.mapper.SysUserMapper">
+
+    <select id="querySysUser" parameterType="map" resultType="java.util.LinkedHashMap">
+        SELECT CAST(msu.id AS CHAR) AS "id",msu.username AS "username",msu.nickname AS "nickname",msu.email AS "email",msu.mobile AS "mobile",msu.prefix AS "prefix",GROUP_CONCAT(msru.role_id) AS "roleId",GROUP_CONCAT(msr.role_name) AS "roleIdCn",CAST(msu.org_id AS CHAR) AS "orgId",mso.org_name AS "orgIdCn",msu.status AS "status",msu.create_time AS "createTime"
+        FROM sys_user msu LEFT JOIN sys_role_user msru ON msu.id = msru.user_id LEFT JOIN sys_role msr ON msr.id = msru.role_id LEFT JOIN sys_org mso ON msu.org_id = mso.id
+        WHERE 1 = 1
+      	<if test="username != null and username != ''">
+    		AND msu.username REGEXP #{username}
+    	</if>
+      	<if test="nickname != null and nickname != ''">
+    		AND msu.nickname LIKE CONCAT('%',#{nickname},'%')
+    	</if>
+        <if test="mobile != null and mobile != ''">
+            AND msu.mobile LIKE CONCAT('%',#{mobile},'%')
+        </if>
+        <if test="role_code != null and role_code != ''">
+            AND IF('ROLE_EAC_ADMIN' !=#{role_code} ,msu.username !='eac',1=1)
+        </if>
+    	<if test="statusList != null">
+    		AND msu.status IN
+            <foreach item="item" index="index" collection="statusList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    	</if>
+        <if test="roleId != null">
+            AND msru.role_id = #{roleId}
+        </if>
+        GROUP BY msu.id
+        <if test="sort != null and sequence != null">
+            ORDER BY ${sort} ${sequence}
+        </if>
+    </select>
+
+
+
+    <select id="queryMpSysUser" parameterType="map" resultType="java.util.LinkedHashMap">
+        SELECT CAST(msu.id AS CHAR) AS "id",msu.username AS "username",msu.nickname AS "nickname",msu.email AS "email",msu.mobile AS "mobile",msu.prefix AS "prefix",GROUP_CONCAT(msru.role_id) AS "roleId",GROUP_CONCAT(msr.role_name) AS "roleIdCn",CAST(msu.org_id AS CHAR) AS "orgId",mso.org_name AS "orgIdCn",msu.avatar AS "avatar",msu.status AS "status",msu.create_time AS "createTime"
+        FROM sys_user msu LEFT JOIN sys_role_user msru ON msu.id = msru.user_id LEFT JOIN sys_role msr ON msr.id = msru.role_id LEFT JOIN sys_org mso ON msu.org_id = mso.id
+        WHERE 1 = 1
+      	<if test="username != null and username != ''">
+    		AND ( msu.username REGEXP #{username} or msu.nickname LIKE CONCAT('%',#{username},'%') or msu.mobile LIKE CONCAT('%',#{username},'%')  )
+    	</if>
+        <if test="role_code != null and role_code != ''">
+            AND IF('ROLE_EAC_ADMIN' !=#{role_code} ,msu.username !='eac',1=1)
+        </if>
+    	<if test="statusList != null">
+    		AND msu.status IN
+            <foreach item="item" index="index" collection="statusList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    	</if>
+        <if test="roleId != null">
+            AND msru.role_id = #{roleId}
+        </if>
+        GROUP BY msu.id
+        <if test="sort != null and sequence != null">
+            ORDER BY ${sort} ${sequence}
+        </if>
+</select>
+
+    <!--<select id="queryUsername" resultType="java.util.LinkedHashMap">-->
+        <!--SELECT username AS "value"-->
+        <!--FROM sys_user-->
+        <!--WHERE status = 1-->
+        <!--<if test="array != null and array.length > 0">-->
+            <!--AND id IN-->
+            <!--<foreach item="id" collection="array" open="(" separator="," close=")">-->
+                <!--#{id}-->
+            <!--</foreach>-->
+        <!--</if>-->
+    <!--</select>-->
+
+    <!--<select id="querySysUserId" resultType="Long">-->
+        <!--SELECT CAST(id AS CHAR) AS "id"-->
+        <!--FROM sys_user-->
+        <!--WHERE status = 1-->
+        <!--<if test="array != null and array.length > 0">-->
+            <!--AND username IN-->
+            <!--<foreach item="username" collection="array" open="(" separator="," close=")">-->
+                <!--#{username}-->
+            <!--</foreach>-->
+        <!--</if>-->
+    <!--</select>-->
+
+    <select id="getSysUserByIdentification" resultType="Integer">
+        SELECT DISTINCT 1
+        FROM sys_user
+        WHERE username = #{username,jdbcType=VARCHAR} OR mobile = #{mobile,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getSysUserByIdMobile" resultType="Integer">
+        SELECT DISTINCT 1
+        FROM sys_user
+        WHERE id != #{id,jdbcType=BIGINT} AND mobile = #{mobile,jdbcType=VARCHAR}
+    </select>
+
+    <select id="queryUserIdByOrgId" resultType="String">
+        SELECT CONCAT_WS("|",msu.id) AS 'id',msu.username
+		FROM sys_user msu
+        WHERE msu.org_id = #{orgId,jdbcType=BIGINT}
+    </select>
+
+    <select id="queryUsernameNickname" resultType="java.util.LinkedHashMap">
+       SELECT CONCAT_WS("-",msu.username,msu.nickname) AS "label",CONCAT_WS("|",msu.id) AS "value"
+		FROM sys_user msu
+    </select>
+
+    <insert id="insertSysUser" parameterType="com.clin.system.entity.SysUser">
+        INSERT INTO sys_user
+            (id, username, nickname, password, email, mobile, prefix, org_id, region_code, city_code,region_path, avatar, status)
+        VALUES
+            (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{prefix,jdbcType=VARCHAR}, #{orgId,jdbcType=BIGINT}, '210000', '210100','/100000/210000/' ,'avatar.png', #{status,jdbcType=SMALLINT})
+    </insert>
+
+    <update id="updateSysUser" parameterType="com.clin.system.entity.SysUser">
+        UPDATE sys_user
+        <set>
+            <if test="password != null and password != ''">password=#{password},</if>
+            <if test="mobile != null and mobile != ''">mobile=#{mobile},</if>
+            <if test="orgId != null">org_id=#{orgId},</if>
+            <if test="nickname != null">nickname=#{nickname},</if>
+            <if test="status != null">status=#{status},</if>
+            <if test="avatar != null">avatar=#{avatar},</if>
+            prefix=#{prefix,jdbcType=VARCHAR}
+        </set>
+        WHERE id=#{id,jdbcType=BIGINT}
+    </update>
+
+    <delete id="deleteSysUser">
+		DELETE FROM sys_user WHERE id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id,jdbcType=BIGINT}
+		</foreach>
+	</delete>
+
+
+    <update id="statusSysUser">
+        update  sys_user  set status=if(status=1,0,1) WHERE id IN
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+</mapper>

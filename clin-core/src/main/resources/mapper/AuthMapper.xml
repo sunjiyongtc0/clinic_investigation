@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.clin.auth.mapper.AuthMapper">
+
+    <select id="getSysUser" resultType="java.util.LinkedHashMap">
+        SELECT CAST(msu.id AS CHAR)        AS "id",
+               msu.username                AS "username",
+               msu.nickname                AS "nickname",
+               msu.phone                   AS "phone",
+               msu.mobile                  AS "mobile",
+               msu.email                   AS "email",
+               msu.region_code             AS "provinceRegionCode",
+               msrp.region_name            AS "provinceRegionName",
+               msu.city_code             AS "cityRegionCode",
+               msrc.region_name            AS "cityRegionName",
+               msu.region_path            AS "RegionPath",
+               msu.address                 AS "address",
+               msu.profile                 AS "profile",
+               msu.notify_message          AS "notifyMessage",
+               msu.notify_todo             AS "notifyTodo",
+               msu.avatar                  AS "avatar",
+               msr.role_name AS "roleNames",
+               msr.role_code AS "roles"
+        FROM sys_user msu
+                 LEFT JOIN sys_region msrp ON msu.region_code = msrp.region_code
+                 LEFT JOIN sys_region msrc ON msu.city_code = msrc.region_code
+                 LEFT JOIN sys_role_user msru ON msu.id = msru.user_id
+                 LEFT JOIN sys_role msr ON msr.id = msru.role_id
+        WHERE msu.username = #{username,jdbcType=VARCHAR} or  msu.mobile = #{username,jdbcType=VARCHAR}
+    </select>
+
+    <!--         SELECT USERNAME AS "USERNAME", PASSWORD AS "PASSWORD", region_code as provinceCode, city_code as cityCode  ,region_path as regionPath
+        FROM sys_user -->
+    <select id="getSysUserByUsername" resultType="java.util.LinkedHashMap">
+        SELECT USERNAME AS "USERNAME", PASSWORD AS "PASSWORD", mobile,r.role_code,nickname,avatar,r.role_name , CAST(u.id AS CHAR) AS user_id
+        FROM sys_user u INNER JOIN sys_role_user ru ON ru.user_id=u.id
+        INNER JOIN sys_role  r ON  r.id=ru.role_id
+        WHERE 1=1 and (u.username = #{username,jdbcType=VARCHAR} or u.mobile = #{username,jdbcType=VARCHAR} ) and u.status=1
+    </select>
+
+    <select id="queryRoleCodeByUsername" resultType="String">
+        SELECT role_code AS "roleCode"
+        FROM sys_user msu
+                 LEFT JOIN sys_role_user msru ON msu.id = msru.user_id
+                 INNER JOIN sys_role msr ON msru.role_id = msr.id AND msu.username = #{username,jdbcType=VARCHAR}
+    </select>
+
+</mapper>
